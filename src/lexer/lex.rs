@@ -1,8 +1,6 @@
-
-
-
 use std::fs;
-use super::symbol::KEYWORDS;
+use super::symbol::{KEYWORDS, Symbols};
+
 pub struct Lexer {
     pub content: Vec<char>,
     pub pos: usize,
@@ -22,67 +20,57 @@ impl Lexer {
     pub fn step_back(&mut self) {
         self.pos -= 1;
     }
-    pub fn get_sym(&mut self) -> String {
-        let mut sym = String::new();
+    pub fn get_sym(&mut self) -> Symbols {
+        let mut s = String::new();
         let mut c = self.get_char();
         while c.is_whitespace() && !reach_eof(self) {
             c = self.get_char();
         }
-        if c.is_ascii_alphabetic() {// keyword or ident
-            sym.push(c);
-            c = self.get_char();
-            while c.is_ascii_alphanumeric() {
-                sym.push(c);
+        match c {
+            'a'..='z' | 'A'..='Z' => {
+                s.push(c);
                 c = self.get_char();
+                while c.is_ascii_alphanumeric() {
+                    s.push(c);
+                    c = self.get_char();
+                }
+                self.step_back();
+                if let Ok(_r) = is_keywords(&s) {// keyword
+                    Symbols::Keyword(s)
+                } else {// ident
+                    Symbols::Ident(s)
+                }
             }
-            if let Ok(_r) = is_keywords(&sym) {
-                println!("keyword: {}", sym);
-            } else {
-                println!("ident: {}", sym);
+            '0'..='9' => {
+                while c.is_ascii_digit() {
+                    s.push(c);
+                    c = self.get_char();
+                }
+                self.step_back();
+                Symbols::Number(s)
             }
-            self.step_back();
-        } else if c.is_ascii_digit() {// number
-            while c.is_ascii_digit() {
-                sym.push(c);
+            '+' | '-' | '*' | '/' | '=' => {
+                s.push(c);
+                Symbols::Operator(s)
+            }
+            '<' | '>' | ':' => {
+                s.push(c);
                 c = self.get_char();
+                if c == '=' {
+                    s.push(c);
+                } else {
+                    self.step_back();
+                }
+                Symbols::Operator(s)
             }
-            println!("number: {}", sym);
-        } else if c == '+' {// plus
-            sym.push(c);
-            println!("plus: {}", sym);
-        } else if c == '-' {// minus 
-            sym.push(c);
-            println!("minus: {}", sym);
-        } else if c == '*' {// times
-            sym.push(c);
-            println!("times: {}", sym);
-        } else if c == '/' {// slash
-            sym.push(c);
-            println!("slash: {}", sym);
-        } else if c == '<' {// lss or leq
-            sym.push(c);
-            c = self.get_char();
-            if c == '=' {// leq
-                sym.push(c);
-                println!("leq: {}", sym);
-            } else {// lss
-                println!("lss: {}", sym);
-                self.step_back();
+            '(' | ')' | ';' | '.' | ',' => {
+                s.push(c);
+                Symbols::Delimiter(s)
             }
-        } else if c == '>' {// gtr or geq
-            sym.push(c);
-            c = self.get_char();
-            if c == '=' {// geq
-                sym.push(c);
-                println!("geq: {}", sym);
-            } else {// gtr
-                println!("gtr: {}", sym);
-                self.step_back();
+            _ => {
+                Symbols::Nul
             }
-        } else if c == '#' {
-            
         }
-        sym
     }
 }
 

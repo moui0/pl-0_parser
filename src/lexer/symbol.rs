@@ -1,3 +1,13 @@
+#[derive(Debug)]
+pub enum Symbols {
+    Keyword(String),
+    Ident(String),
+    Number(String),
+    Operator(String),
+    Delimiter(String),
+    Nul,
+}
+
 pub const KEYWORDS: [&str; 13] = [
     "begin",
     "call",

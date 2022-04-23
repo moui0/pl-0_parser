@@ -4,8 +4,9 @@ mod parser;
 pub use lexer::{Lexer, reach_eof};
 
 fn main() {
-    let mut lexer = Lexer::new("sample/sample2.pl0");
+    let mut lexer = Lexer::new("sample/sample0.pl0");
     while !reach_eof(&lexer) {
-        lexer.get_sym();
+        let sym = lexer.get_sym();
+        println!("{:?}", sym);
     }
 }
