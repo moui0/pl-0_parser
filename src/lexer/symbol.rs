@@ -6,7 +6,7 @@ pub const KEYWORDS: [&str; 13] = [
     "end",
     "if",
     "odd",
-    "procedur",
+    "procedure",
     "read",
     "then",
     "var",

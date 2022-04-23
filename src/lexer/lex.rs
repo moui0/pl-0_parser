@@ -19,13 +19,16 @@ impl Lexer {
         self.pos += 1;
         self.content[self.pos-1]
     }
+    pub fn step_back(&mut self) {
+        self.pos -= 1;
+    }
     pub fn get_sym(&mut self) -> String {
         let mut sym = String::new();
         let mut c = self.get_char();
         while c.is_whitespace() && !reach_eof(self) {
             c = self.get_char();
         }
-        if c.is_ascii_alphabetic() {
+        if c.is_ascii_alphabetic() {// keyword or ident
             sym.push(c);
             c = self.get_char();
             while c.is_ascii_alphanumeric() {
@@ -33,12 +36,51 @@ impl Lexer {
                 c = self.get_char();
             }
             if let Ok(_r) = is_keywords(&sym) {
-                println!("{} is a keyword", sym);
+                println!("keyword: {}", sym);
             } else {
-                println!("{} is a ident", sym);
+                println!("ident: {}", sym);
             }
-        } else {
-
+            self.step_back();
+        } else if c.is_ascii_digit() {// number
+            while c.is_ascii_digit() {
+                sym.push(c);
+                c = self.get_char();
+            }
+            println!("number: {}", sym);
+        } else if c == '+' {// plus
+            sym.push(c);
+            println!("plus: {}", sym);
+        } else if c == '-' {// minus 
+            sym.push(c);
+            println!("minus: {}", sym);
+        } else if c == '*' {// times
+            sym.push(c);
+            println!("times: {}", sym);
+        } else if c == '/' {// slash
+            sym.push(c);
+            println!("slash: {}", sym);
+        } else if c == '<' {// lss or leq
+            sym.push(c);
+            c = self.get_char();
+            if c == '=' {// leq
+                sym.push(c);
+                println!("leq: {}", sym);
+            } else {// lss
+                println!("lss: {}", sym);
+                self.step_back();
+            }
+        } else if c == '>' {// gtr or geq
+            sym.push(c);
+            c = self.get_char();
+            if c == '=' {// geq
+                sym.push(c);
+                println!("geq: {}", sym);
+            } else {// gtr
+                println!("gtr: {}", sym);
+                self.step_back();
+            }
+        } else if c == '#' {
+            
         }
         sym
     }
