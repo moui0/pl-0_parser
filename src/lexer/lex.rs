@@ -1,5 +1,6 @@
 use std::fs;
-use super::symbol::{KEYWORDS, Symbols};
+use super::symbol::Symbols;
+use super::{reach_eof, is_keywords};
 
 pub struct Lexer {
     pub content: Vec<char>,
@@ -72,12 +73,4 @@ impl Lexer {
             }
         }
     }
-}
-
-pub fn reach_eof(lexer: &Lexer) -> bool {
-    lexer.pos == lexer.content.len() as usize
-}
-
-pub fn is_keywords(sym: &str) -> Result<usize, usize> {
-    KEYWORDS.binary_search(&sym)
 }
