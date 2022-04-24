@@ -13,13 +13,16 @@ impl Lexer {
             pos: 0,
         }
     }
+
     pub fn get_char(&mut self) -> char {
         self.pos += 1;
         self.content[self.pos-1]
     }
+
     pub fn step_back(&mut self) {
         self.pos -= 1;
     }
+    
     pub fn get_sym(&mut self) -> Symbols {
         let mut s = String::new();
         let mut c = self.get_char();
