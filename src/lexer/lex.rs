@@ -27,19 +27,19 @@ impl Lexer {
         while c.is_whitespace() && !reach_eof(self) {
             c = self.get_char();
         }
-        match c {
+        let symbol = match c {
             'a'..='z' | 'A'..='Z' => {
                 s.push(c);
                 c = self.get_char();
-                while c.is_ascii_alphanumeric() {
+                while c.is_alphanumeric() {
                     s.push(c);
                     c = self.get_char();
                 }
                 self.step_back();
-                if let Ok(_r) = is_keywords(&s) {// keyword
-                    Symbols::Keyword(s)
-                } else {// ident
-                    Symbols::Ident(s)
+                if let Ok(idx) = is_keywords(&s) {
+                    Symbols::from(idx as u8)
+                } else {
+                    Symbols::Ident
                 }
             }
             '0'..='9' => {
@@ -48,29 +48,86 @@ impl Lexer {
                     c = self.get_char();
                 }
                 self.step_back();
-                Symbols::Number(s)
+                Symbols::Number
             }
-            '+' | '-' | '*' | '/' | '=' => {
-                s.push(c);
-                Symbols::Operator(s)
-            }
-            '<' | '>' | ':' => {
+            '<' => {
                 s.push(c);
                 c = self.get_char();
                 if c == '=' {
                     s.push(c);
+                    Symbols::Leq
                 } else {
                     self.step_back();
+                    Symbols::Lss
                 }
-                Symbols::Operator(s)
             }
-            '(' | ')' | ';' | '.' | ',' => {
+            '>' => {
                 s.push(c);
-                Symbols::Delimiter(s)
+                c = self.get_char();
+                if c == '=' {
+                    s.push(c);
+                    Symbols::Geq
+                } else {
+                    self.step_back();
+                    Symbols::Gtr
+                }
             }
-            _ => {
-                Symbols::Nul
+            ':' => {
+                s.push(c);
+                c = self.get_char();
+                if c == '=' {
+                    s.push(c);
+                    Symbols::Becomes
+                } else {
+                    Symbols::Nul
+                }
             }
-        }
+            '=' => {
+                s.push(c);
+                Symbols::Eql
+            }
+            '#' => {
+                s.push(c);
+                Symbols::Neq
+            }
+            '+' => {
+                s.push(c);
+                Symbols::Plus
+            }
+            '-' => {
+                s.push(c);
+                Symbols::Minus
+            }
+            '*' => {
+                s.push(c);
+                Symbols::Times
+            }
+            '/' => {
+                s.push(c);
+                Symbols::Slash
+            }
+            '(' => {
+                s.push(c);
+                Symbols::Lparen
+            }
+            ')' => {
+                s.push(c);
+                Symbols::Rparen
+            }
+            ',' => {
+                s.push(c);
+                Symbols::Comma
+            }
+            ';' => {
+                s.push(c);
+                Symbols::Semicolon
+            }
+            '.' => {
+                s.push(c);
+                Symbols::Period
+            }
+            _ => Symbols::Nul,
+        };
+        symbol
     }
 }
