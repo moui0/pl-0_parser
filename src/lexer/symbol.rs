@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Symbol {
     // keyword
     Beginsym(String),
@@ -37,6 +37,8 @@ pub enum Symbol {
     Period(String),
     // null
     Nul,
+    // root,
+    Root,
 }
 
 impl Symbol {

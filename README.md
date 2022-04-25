@@ -20,7 +20,7 @@ A simple PL/0 language Lexer and Parser.
 <因子>::=<标识符>|<无符号整数>|'('<表达式>')'
 <加法运算符>::=+|- 
 <乘法运算符>::=*|/
-<关系运算法>::==|#|""<|<=|>|>=
+<关系运算法>::==|#|<|<=|>|>=
 <条件语句>::=if<条件>then<语句>
 <过程调用语句>::=call<标识符>
 <当型循环语句>::=while<条件>DO<语句>
@@ -32,9 +32,26 @@ A simple PL/0 language Lexer and Parser.
 <无符号整数>::=<数字>{<数字>}
 ```
 
+```
+<programs>::=<>
+<>::=[<const_declaration>][<var_declaration>][<procedure_declaration>]<>
+<const_declaration>::=const<const_definition>{,<const_definition>};
+<const_definition>::=<identifier>=<unsigned_integer>
+<var_declaration>::=var<identifier>{,<identifier>}
+<procedure_declaration>::=<procedure_header><>{;<procedure_declaration>};
+<procedure_header>::=procedure<identifier>;
+<>::=<
+
+
+<identifier>::=
+<unsigned_integer>::=
+```
+
+
+
 ## 关键字
 
-const/var/procedur/begin/end/odd/if/then/call/while/do/read/write
+const/var/procedure/begin/end/odd/if/then/call/while/do/read/write
 
 ## 运算符
 

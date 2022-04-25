@@ -6,7 +6,6 @@ use parser::Parser;
 
 fn main() {
     let parser = Parser::new("sample/sample0.pl0");
-    while let Ok(sym) = parser.get_sym() {
-        println!("{:?}", sym);
-    }
+    parser.generate_ast();
+    parser.ast_root.borrow().print_tree();
 }

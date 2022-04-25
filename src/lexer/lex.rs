@@ -1,6 +1,7 @@
 use std::fs;
 use super::symbol::Symbol;
 
+#[derive(Debug)]
 pub struct Lexer {
     pub content: Vec<char>,
     pub pos: usize,
