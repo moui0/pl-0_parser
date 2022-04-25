@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 
-use crate::{Lexer, lexer::Symbols, reach_eof};
+use crate::{Lexer, lexer::Symbol};
 
 pub struct Parser {
     lexer: RefCell<Lexer>,
@@ -14,11 +14,9 @@ impl Parser {
         }
     }
 
-    pub fn get_sym(&self) -> Symbols {
-        if !reach_eof(&self.lexer.borrow()) {
-            self.lexer.borrow_mut().get_sym()
-        } else {
-            Symbols::Nul
-        }
+    pub fn get_sym(&self) -> Result<Symbol, ()>  {
+        self.lexer.borrow_mut().get_sym()
     }
+
+    
 }

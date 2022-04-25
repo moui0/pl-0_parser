@@ -1,6 +1,5 @@
 use std::fs;
-use super::symbol::Symbols;
-use super::{reach_eof, is_keywords};
+use super::symbol::Symbol;
 
 pub struct Lexer {
     pub content: Vec<char>,
@@ -14,121 +13,133 @@ impl Lexer {
             pos: 0,
         }
     }
-    pub fn get_char(&mut self) -> char {
-        self.pos += 1;
-        self.content[self.pos-1]
+
+    pub fn get_char(&mut self) -> Result<char, ()> {
+        if self.pos == self.content.len() {
+            Err(())
+        } else {
+            self.pos += 1;
+            Ok(self.content[self.pos-1])
+        }
     }
+
     pub fn step_back(&mut self) {
         self.pos -= 1;
     }
-    pub fn get_sym(&mut self) -> Symbols {
+    
+    pub fn get_sym(&mut self) -> Result<Symbol, ()> {
         let mut s = String::new();
-        let mut c = self.get_char();
-        while c.is_whitespace() && !reach_eof(self) {
-            c = self.get_char();
+        let mut c = self.get_char().unwrap();
+        // Remove whitespace before character.
+        while c.is_ascii_whitespace() {
+            if let Ok(r) = self.get_char() {
+                c = r;
+            } else {
+                return Err(())
+            }
         }
+
         let symbol = match c {
             'a'..='z' | 'A'..='Z' => {
                 s.push(c);
-                c = self.get_char();
+                c = self.get_char().unwrap();
                 while c.is_alphanumeric() {
                     s.push(c);
-                    c = self.get_char();
+                    c = self.get_char().unwrap();
                 }
                 self.step_back();
-                if let Ok(idx) = is_keywords(&s) {
-                    Symbols::from(idx as u8)
-                } else {
-                    Symbols::Ident
-                }
+                Symbol::new_keyword_or_ident(s)
             }
             '0'..='9' => {
                 while c.is_ascii_digit() {
                     s.push(c);
-                    c = self.get_char();
+                    c = self.get_char().unwrap();
                 }
                 self.step_back();
-                Symbols::Number
+                Symbol::Number(s)
             }
             '<' => {
                 s.push(c);
-                c = self.get_char();
+                c = self.get_char().unwrap();
                 if c == '=' {
                     s.push(c);
-                    Symbols::Leq
+                    Symbol::Leq(s)
                 } else {
                     self.step_back();
-                    Symbols::Lss
+                    Symbol::Lss(s)
                 }
             }
             '>' => {
                 s.push(c);
-                c = self.get_char();
+                c = self.get_char().unwrap();
                 if c == '=' {
                     s.push(c);
-                    Symbols::Geq
+                    Symbol::Geq(s)
                 } else {
                     self.step_back();
-                    Symbols::Gtr
+                    Symbol::Gtr(s)
                 }
             }
             ':' => {
                 s.push(c);
-                c = self.get_char();
+                c = self.get_char().unwrap();
                 if c == '=' {
                     s.push(c);
-                    Symbols::Becomes
+                    Symbol::Becomes(s)
                 } else {
-                    Symbols::Nul
+                    Symbol::Nul
                 }
             }
             '=' => {
                 s.push(c);
-                Symbols::Eql
+                Symbol::Eql(s)
             }
             '#' => {
                 s.push(c);
-                Symbols::Neq
+                Symbol::Neq(s)
             }
             '+' => {
                 s.push(c);
-                Symbols::Plus
+                Symbol::Plus(s)
             }
             '-' => {
                 s.push(c);
-                Symbols::Minus
+                Symbol::Minus(s)
             }
             '*' => {
                 s.push(c);
-                Symbols::Times
+                Symbol::Times(s)
             }
             '/' => {
                 s.push(c);
-                Symbols::Slash
+                Symbol::Slash(s)
             }
             '(' => {
                 s.push(c);
-                Symbols::Lparen
+                Symbol::Lparen(s)
             }
             ')' => {
                 s.push(c);
-                Symbols::Rparen
+                Symbol::Rparen(s)
             }
             ',' => {
                 s.push(c);
-                Symbols::Comma
+                Symbol::Comma(s)
             }
             ';' => {
                 s.push(c);
-                Symbols::Semicolon
+                Symbol::Semicolon(s)
             }
             '.' => {
                 s.push(c);
-                Symbols::Period
+                Symbol::Period(s)
             }
-            _ => Symbols::Nul,
+            _ => {
+                println!("%%%{}%%%", c as u8);
+                Symbol::Nul
+            }
         };
-        symbol
+        Ok(symbol)
     }
 }
 
