@@ -1,10 +1,11 @@
 use std::fs;
-use super::symbol::Symbols;
-use super::{reach_eof, is_keywords};
+use super::symbol::Symbol;
 
+#[derive(Debug)]
 pub struct Lexer {
-    pub content: Vec<char>,
-    pub pos: usize,
+    content: Vec<char>,
+    pos: usize,
+    old_pos: usize,
 }
 
 impl Lexer {
@@ -12,35 +13,42 @@ impl Lexer {
         Lexer { 
             content: fs::read_to_string(file_path).unwrap().chars().collect(),
             pos: 0,
+            old_pos: 0,
         }
     }
-    pub fn get_char(&mut self) -> char {
+
+    fn get_char(&mut self) -> char {
         self.pos += 1;
         self.content[self.pos-1]
     }
-    pub fn step_back(&mut self) {
+
+    fn step_back(&mut self) {
         self.pos -= 1;
     }
-    pub fn get_sym(&mut self) -> Symbols {
+
+    pub fn back(&mut self) {
+        self.pos = self.old_pos;
+    }
+    
+    pub fn get_sym(&mut self) -> Symbol {
+        self.old_pos = self.pos;
         let mut s = String::new();
         let mut c = self.get_char();
-        while c.is_whitespace() && !reach_eof(self) {
+        // Remove whitespace before character.
+        while c.is_ascii_whitespace() {
             c = self.get_char();
         }
-        match c {
+
+        let symbol = match c {
             'a'..='z' | 'A'..='Z' => {
                 s.push(c);
                 c = self.get_char();
-                while c.is_ascii_alphanumeric() {
+                while c.is_alphanumeric() {
                     s.push(c);
                     c = self.get_char();
                 }
                 self.step_back();
-                if let Ok(_r) = is_keywords(&s) {// keyword
-                    Symbols::Keyword(s)
-                } else {// ident
-                    Symbols::Ident(s)
-                }
+                Symbol::new_keyword_or_ident(s)
             }
             '0'..='9' => {
                 while c.is_ascii_digit() {
@@ -48,29 +56,90 @@ impl Lexer {
                     c = self.get_char();
                 }
                 self.step_back();
-                Symbols::Number(s)
+                Symbol::Number(s)
             }
-            '+' | '-' | '*' | '/' | '=' => {
-                s.push(c);
-                Symbols::Operator(s)
-            }
-            '<' | '>' | ':' => {
+            '<' => {
                 s.push(c);
                 c = self.get_char();
                 if c == '=' {
                     s.push(c);
+                    Symbol::Leq(s)
                 } else {
                     self.step_back();
+                    Symbol::Lss(s)
                 }
-                Symbols::Operator(s)
             }
-            '(' | ')' | ';' | '.' | ',' => {
+            '>' => {
                 s.push(c);
-                Symbols::Delimiter(s)
+                c = self.get_char();
+                if c == '=' {
+                    s.push(c);
+                    Symbol::Geq(s)
+                } else {
+                    self.step_back();
+                    Symbol::Gtr(s)
+                }
+            }
+            ':' => {
+                s.push(c);
+                c = self.get_char();
+                if c == '=' {
+                    s.push(c);
+                    Symbol::Becomes(s)
+                } else {
+                    Symbol::Nul
+                }
+            }
+            '=' => {
+                s.push(c);
+                Symbol::Eql(s)
+            }
+            '#' => {
+                s.push(c);
+                Symbol::Neq(s)
+            }
+            '+' => {
+                s.push(c);
+                Symbol::Plus(s)
+            }
+            '-' => {
+                s.push(c);
+                Symbol::Minus(s)
+            }
+            '*' => {
+                s.push(c);
+                Symbol::Times(s)
+            }
+            '/' => {
+                s.push(c);
+                Symbol::Slash(s)
+            }
+            '(' => {
+                s.push(c);
+                Symbol::Lparen(s)
+            }
+            ')' => {
+                s.push(c);
+                Symbol::Rparen(s)
+            }
+            ',' => {
+                s.push(c);
+                Symbol::Comma(s)
+            }
+            ';' => {
+                s.push(c);
+                Symbol::Semicolon(s)
+            }
+            '.' => {
+                s.push(c);
+                Symbol::Period(s)
             }
             _ => {
-                Symbols::Nul
+                Symbol::Nul
             }
-        }
+        };
+        // println!("{:#?}", symbol);
+        symbol
     }
 }
+

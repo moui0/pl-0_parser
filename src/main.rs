@@ -1,12 +1,19 @@
 mod lexer;
 mod parser;
+mod config;
 
-pub use lexer::{Lexer, reach_eof};
+use std::{env, process};
+
+use lexer::Lexer;
+use parser::Parser;
+use config::Config;
 
 fn main() {
-    let mut lexer = Lexer::new("sample/sample0.pl0");
-    while !reach_eof(&lexer) {
-        let sym = lexer.get_sym();
-        println!("{:?}", sym);
-    }
+    let config = Config::new(env::args()).unwrap_or_else(|err| {
+        eprintln!("Problem parsing arguments: {}", err);
+        process::exit(1);
+    });
+    let parser = Parser::new(&config.filename);
+    parser.gen_ast();
+    parser.ast_root.borrow().print_ast();
 }
