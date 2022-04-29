@@ -14,7 +14,7 @@ impl Parser {
     pub fn new(file_path: &str) -> Self {
         Parser { 
             lexer: RefCell::new(Lexer::new(file_path)),
-            ast_root: RefCell::new(ASTNode::new(String::from("root"))),
+            ast_root: RefCell::new(ASTNode::new(String::from("ROOT"))),
         }
     }
 
@@ -31,7 +31,7 @@ impl Parser {
     }
 
     fn gen_program(&self) -> ASTNode {
-        let mut node = ASTNode::new(String::from("sub_program"));
+        let mut node = ASTNode::new(String::from("SUB_PROGRAM"));
         match self.get_sym() {
             Symbol::Constsym(_) => {
                 self.back();
@@ -60,7 +60,7 @@ impl Parser {
     fn gen_const_decl(&self) -> ASTNode {
         match self.get_sym() {
             Symbol::Constsym(s) => {
-                let mut node = ASTNode::new(String::from("const_decl"));
+                let mut node = ASTNode::new(String::from("CONST_DECL"));
                 node.child.push(Box::new(ASTNode::new(s)));
                 loop {
                     node.child.push(Box::new(self.gen_const_def()));
@@ -80,7 +80,7 @@ impl Parser {
     }
 
     fn gen_const_def(&self) -> ASTNode {
-        let mut node = ASTNode::new(String::from("const_def"));
+        let mut node = ASTNode::new(String::from("CONST_DEF"));
         node.child.push(Box::new(self.gen_ident()));
         node.child.push(Box::new(self.gen_eql()));
         node.child.push(Box::new(self.gen_uint()));
@@ -118,7 +118,7 @@ impl Parser {
     fn gen_var_decl(&self) -> ASTNode {
         match self.get_sym() {
             Symbol::Varsym(s) => {
-                let mut node = ASTNode::new(String::from("var_decl"));
+                let mut node = ASTNode::new(String::from("VAR_DECL"));
                 node.child.push(Box::new(ASTNode::new(s)));
                 loop {
                     node.child.push(Box::new(self.gen_ident()));
@@ -138,7 +138,7 @@ impl Parser {
     }
 
     fn gen_proc_decl(&self) -> ASTNode {
-        let mut node = ASTNode::new(String::from("proc_decl"));
+        let mut node = ASTNode::new(String::from("PROC_DECL"));
         node.child.push(Box::new(self.gen_proc_header()));
         node.child.push(Box::new(self.gen_program()));
         node.child.push(Box::new(self.gen_smcol(false)));
@@ -153,7 +153,7 @@ impl Parser {
     fn gen_proc_header(&self) -> ASTNode {
         match self.get_sym() {
             Symbol::Procsym(s) => {
-                let mut node = ASTNode::new(String::from("proc_header"));
+                let mut node = ASTNode::new(String::from("PROC_HEADER"));
                 node.child.push(Box::new(ASTNode::new(s)));
                 node.child.push(Box::new(self.gen_ident()));
                 node.child.push(Box::new(self.gen_smcol(false)));
@@ -184,7 +184,7 @@ impl Parser {
     }
 
     fn gen_stmt(&self) -> ASTNode {
-        let mut node = ASTNode::new(String::from("stmt"));
+        let mut node = ASTNode::new(String::from("STMT"));
         let sym = self.get_sym();
         self.back();
         match sym {
@@ -201,7 +201,7 @@ impl Parser {
     }
 
     fn gen_stmt_assgin(&self) -> ASTNode {
-        let mut node = ASTNode::new(String::from("assign_stmt"));
+        let mut node = ASTNode::new(String::from("ASSIGN_STMT"));
         node.child.push(Box::new(self.gen_ident()));
         node.child.push(Box::new(self.gen_becomes()));
         node.child.push(Box::new(self.gen_expr()));
@@ -216,7 +216,7 @@ impl Parser {
     }
 
     fn gen_expr(&self) -> ASTNode {
-        let mut node = ASTNode::new(String::from("expr"));
+        let mut node = ASTNode::new(String::from("EXPR"));
         for i in 0.. {
             match self.get_sym() {
                 Symbol::Plus(s) | 
@@ -236,7 +236,7 @@ impl Parser {
     }
 
     fn gen_nomial(&self) -> ASTNode {
-        let mut node = ASTNode::new(String::from("nomial"));
+        let mut node = ASTNode::new(String::from("NOMIAL"));
         node.child.push(Box::new(self.gen_factor()));
         loop {
             match self.get_sym() {
@@ -255,7 +255,7 @@ impl Parser {
     }
 
     fn gen_factor(&self) -> ASTNode {
-        let mut node = ASTNode::new(String::from("factor"));
+        let mut node = ASTNode::new(String::from("FACTOR"));
         match self.get_sym() {
             Symbol::Lparen(_) => {
                 self.back();
@@ -293,7 +293,7 @@ impl Parser {
     fn gen_stmt_cond(&self) -> ASTNode {
         match self.get_sym() {
             Symbol::Ifsym(s) => {
-                let mut node = ASTNode::new(String::from("cond_stmt"));
+                let mut node = ASTNode::new(String::from("COND_STMT"));
                 node.child.push(Box::new(ASTNode::new(s)));
                 node.child.push(Box::new(self.gen_cond()));
                 match self.get_sym() {
@@ -310,7 +310,7 @@ impl Parser {
     }
 
     fn gen_cond(&self) -> ASTNode {
-        let mut node = ASTNode::new(String::from("cond"));
+        let mut node = ASTNode::new(String::from("COND"));
         match self.get_sym() {
             Symbol::Oddsym(s) => {
                 node.child.push(Box::new(ASTNode::new(s)));
@@ -337,7 +337,7 @@ impl Parser {
     fn gen_stmt_loop(&self) -> ASTNode {
         match self.get_sym() {
             Symbol::Whilesym(s) => {
-                let mut node = ASTNode::new(String::from("while_stmt"));
+                let mut node = ASTNode::new(String::from("LOOP_STMT"));
                 node.child.push(Box::new(ASTNode::new(s)));
                 node.child.push(Box::new(self.gen_cond()));
                 match self.get_sym() {
@@ -356,7 +356,7 @@ impl Parser {
     fn gen_stmt_call(&self) -> ASTNode {
         match self.get_sym() {
             Symbol::Callsym(s) => {
-                let mut node = ASTNode::new(String::from("call_stmt"));
+                let mut node = ASTNode::new(String::from("CALL_STMT"));
                 node.child.push(Box::new(ASTNode::new(s)));
                 node.child.push(Box::new(self.gen_ident()));
                 node
@@ -368,7 +368,7 @@ impl Parser {
     fn gen_stmt_read(&self) -> ASTNode {
         match self.get_sym() {
             Symbol::Readsym(s) => {
-                let mut node = ASTNode::new(String::from("read_stmt"));
+                let mut node = ASTNode::new(String::from("READ_STMT"));
                 node.child.push(Box::new(ASTNode::new(s)));
                 node.child.push(Box::new(self.gen_lparen()));
                 loop {
@@ -394,7 +394,7 @@ impl Parser {
     fn gen_stmt_write(&self) -> ASTNode {
         match self.get_sym() {
             Symbol::Writesym(s) => {
-                let mut node = ASTNode::new(String::from("write_stmt"));
+                let mut node = ASTNode::new(String::from("WRITE_STMT"));
                 node.child.push(Box::new(ASTNode::new(s)));
                 node.child.push(Box::new(self.gen_lparen()));
                 loop {
@@ -420,7 +420,7 @@ impl Parser {
     fn gen_stmt_comp(&self) -> ASTNode {
         match self.get_sym() {
             Symbol::Beginsym(s) => {
-                let mut node = ASTNode::new(String::from("comp_stmt"));
+                let mut node = ASTNode::new(String::from("COMP_STMT"));
                 node.child.push(Box::new(ASTNode::new(s)));
                 node.child.push(Box::new(self.gen_stmt()));
                 loop {
@@ -448,7 +448,7 @@ impl Parser {
     }
 
     fn gen_stmt_empty(&self) -> ASTNode {
-        ASTNode::new(String::from("empty_stmt"))
+        ASTNode::new(String::from("EMPTY_STMT"))
     }
 }
 

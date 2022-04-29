@@ -1,16 +1,19 @@
 mod lexer;
 mod parser;
+mod config;
 
-use std::env;
+use std::{env, process};
 
-pub use lexer::Lexer;
+use lexer::Lexer;
 use parser::Parser;
+use config::Config;
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    let file_path = &args[1];
-    println!("{}", file_path);
-    let parser = Parser::new(&file_path);
+    let config = Config::new(env::args()).unwrap_or_else(|err| {
+        eprintln!("Problem parsing arguments: {}", err);
+        process::exit(1);
+    });
+    let parser = Parser::new(&config.filename);
     parser.gen_ast();
-    parser.ast_root.borrow().print_tree();
+    parser.ast_root.borrow().print_ast();
 }
