@@ -3,9 +3,9 @@ use super::symbol::Symbol;
 
 #[derive(Debug)]
 pub struct Lexer {
-    pub content: Vec<char>,
-    pub pos: usize,
-    pub old_pos: usize,
+    content: Vec<char>,
+    pos: usize,
+    old_pos: usize,
 }
 
 impl Lexer {
@@ -17,12 +17,12 @@ impl Lexer {
         }
     }
 
-    pub fn get_char(&mut self) -> char {
+    fn get_char(&mut self) -> char {
         self.pos += 1;
         self.content[self.pos-1]
     }
 
-    pub fn step_back(&mut self) {
+    fn step_back(&mut self) {
         self.pos -= 1;
     }
 
@@ -138,7 +138,7 @@ impl Lexer {
                 Symbol::Nul
             }
         };
-        println!("{:#?}", symbol);
+        // println!("{:#?}", symbol);
         symbol
     }
 }

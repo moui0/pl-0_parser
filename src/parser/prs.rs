@@ -18,16 +18,16 @@ impl Parser {
         }
     }
 
-    pub fn get_sym(&self) -> Symbol {
+    pub fn gen_ast(&self) {
+        self.ast_root.borrow_mut().child.push(Box::new(self.gen_program()));
+    }
+
+    fn get_sym(&self) -> Symbol {
         self.lexer.borrow_mut().get_sym()
     }
 
-    pub fn back(&self) {
+    fn back(&self) {
         self.lexer.borrow_mut().back();
-    }
-
-    pub fn gen_ast(&self) {
-        self.ast_root.borrow_mut().child.push(Box::new(self.gen_program()));
     }
 
     fn gen_program(&self) -> ASTNode {
@@ -54,38 +54,22 @@ impl Parser {
             _ => self.back(),
         }
         node.child.push(Box::new(self.gen_stmt()));
-
-        // if matches!(sym, Symbol::Constsym(_)) {
-        //     self.back();
-        //     node.child.push(Box::new(self.gen_const_decl()));
-        //     sym = self.get_sym();
-        // }
-        // if matches!(sym, Symbol::Varsym(_)) {
-        //     self.back();
-        //     node.child.push(Box::new(self.gen_var_decl()));
-        //     sym = self.get_sym();
-        // }
-        // if matches!(sym, Symbol::Procsym(_)) {
-        //     self.back();
-        //     node.child.push(Box::new(self.gen_proc_decl()));
-        //     sym = self.get_sym();
-        // }
-        // // ? assume that the first part of program is not "statement"
-        // self.back();
-        // node.child.push(Box::new(self.gen_stmt()));
         node
     }
 
     fn gen_const_decl(&self) -> ASTNode {
         match self.get_sym() {
-            Symbol::Constsym(c) => {
+            Symbol::Constsym(s) => {
                 let mut node = ASTNode::new(String::from("const_decl"));
-                node.child.push(Box::new(ASTNode::new(c)));
+                node.child.push(Box::new(ASTNode::new(s)));
                 loop {
                     node.child.push(Box::new(self.gen_const_def()));
                     match self.get_sym() {
-                        Symbol::Semicolon(_) => break,
-                        Symbol::Comma(_) => {},
+                        Symbol::Semicolon(_) => {
+                            node.child.push(Box::new(self.gen_smcol(true)));
+                            break;
+                        }
+                        Symbol::Comma(_) => node.child.push(Box::new(self.gen_comma(true))),
                         _ => error_hander(),
                     }
                 }
@@ -119,28 +103,31 @@ impl Parser {
 
     fn gen_eql(&self) -> ASTNode {
         match self.get_sym() {
-            Symbol::Eql(e) => ASTNode::new(e),
+            Symbol::Eql(s) => ASTNode::new(s),
             _ => error_hander(),
         }
     }
 
     fn gen_uint(&self) -> ASTNode {
         match self.get_sym() {
-            Symbol::Number(n) => ASTNode::new(n),
+            Symbol::Number(s) => ASTNode::new(s),
             _ => error_hander(),
         }
     }
 
     fn gen_var_decl(&self) -> ASTNode {
         match self.get_sym() {
-            Symbol::Varsym(v) => {
+            Symbol::Varsym(s) => {
                 let mut node = ASTNode::new(String::from("var_decl"));
-                node.child.push(Box::new(ASTNode::new(v)));
+                node.child.push(Box::new(ASTNode::new(s)));
                 loop {
                     node.child.push(Box::new(self.gen_ident()));
                     match self.get_sym() {
-                        Symbol::Semicolon(_) => break,
-                        Symbol::Comma(_) => {},
+                        Symbol::Semicolon(_) => {
+                            node.child.push(Box::new(self.gen_smcol(true)));
+                            break;
+                        }
+                        Symbol::Comma(_) => node.child.push(Box::new(self.gen_comma(true))),
                         _ => error_hander(),
                     }
                 }
@@ -154,7 +141,7 @@ impl Parser {
         let mut node = ASTNode::new(String::from("proc_decl"));
         node.child.push(Box::new(self.gen_proc_header()));
         node.child.push(Box::new(self.gen_program()));
-        node.child.push(Box::new(self.gen_smcol()));
+        node.child.push(Box::new(self.gen_smcol(false)));
         let sym = self.get_sym();
         self.back();
         if matches!(sym, Symbol::Procsym(_)) {
@@ -169,16 +156,29 @@ impl Parser {
                 let mut node = ASTNode::new(String::from("proc_header"));
                 node.child.push(Box::new(ASTNode::new(s)));
                 node.child.push(Box::new(self.gen_ident()));
-                node.child.push(Box::new(self.gen_smcol()));
+                node.child.push(Box::new(self.gen_smcol(false)));
                 node
             }
             _ => error_hander(),
         }
     }
 
-    fn gen_smcol(&self) -> ASTNode {
+    fn gen_smcol(&self, back: bool) -> ASTNode {
+        if back {
+            self.back();
+        }
         match self.get_sym() {
             Symbol::Semicolon(s) => ASTNode::new(s),
+            _ => error_hander(),
+        }
+    }
+
+    fn gen_comma(&self, back: bool) -> ASTNode {
+        if back {
+            self.back();
+        }
+        match self.get_sym() {
+            Symbol::Comma(s) => ASTNode::new(s),
             _ => error_hander(),
         }
     }
@@ -210,7 +210,7 @@ impl Parser {
 
     fn gen_becomes(&self) -> ASTNode {
         match self.get_sym() {
-            Symbol::Becomes(b) => ASTNode::new(b),
+            Symbol::Becomes(s) => ASTNode::new(s),
             _ => error_hander(),
         }
     }
@@ -257,7 +257,7 @@ impl Parser {
     fn gen_factor(&self) -> ASTNode {
         let mut node = ASTNode::new(String::from("factor"));
         match self.get_sym() {
-            Symbol::Lparen(s) => {
+            Symbol::Lparen(_) => {
                 self.back();
                 node.child.push(Box::new(self.gen_lparen()));
                 node.child.push(Box::new(self.gen_expr()));
@@ -377,7 +377,7 @@ impl Parser {
                             self.back();
                             node.child.push(Box::new(self.gen_ident()));
                         }
-                        Symbol::Comma(_) => continue,
+                        Symbol::Comma(_) => node.child.push(Box::new(self.gen_comma(true))),
                         _ => {
                             self.back();
                             break;
@@ -403,7 +403,7 @@ impl Parser {
                             self.back();
                             node.child.push(Box::new(self.gen_ident()));
                         }
-                        Symbol::Comma(_) => continue,
+                        Symbol::Comma(_) => node.child.push(Box::new(self.gen_comma(true))),
                         _ => {
                             self.back();
                             break;
@@ -426,8 +426,7 @@ impl Parser {
                 loop {
                     match self.get_sym() {
                         Symbol::Semicolon(_) => {
-                            self.back();
-                            node.child.push(Box::new(self.gen_smcol()));
+                            node.child.push(Box::new(self.gen_smcol(true)));
                             node.child.push(Box::new(self.gen_stmt()));
                         }
                         _ => {

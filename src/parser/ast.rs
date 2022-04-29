@@ -1,5 +1,3 @@
-use crate::lexer::Symbol;
-
 #[derive(Debug)]
 pub struct ASTNode {
     node_type: String,
