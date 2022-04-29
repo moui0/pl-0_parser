@@ -2,22 +2,19 @@ use crate::lexer::Symbol;
 
 #[derive(Debug)]
 pub struct ASTNode {
-    sym: Symbol,
+    node_type: String,
     pub child: Vec<Box<ASTNode> >,
 }
 
 impl ASTNode {
-    pub fn new(sym: Symbol) -> Self {
+    pub fn new(node_type: String) -> Self {
         ASTNode { 
-            sym: sym, 
+            node_type,
             child: Vec::new(), 
         }
     }
     fn print_tree_dfs(&self, depth: usize, vis: &mut [bool], idx: usize, cnt: usize) {
         // TODO: if self == NULL return;
-        if self.sym == Symbol::Nul {
-            return;
-        }
         for i in 0..depth {
             if i == depth - 1 {
                 print!("+---");
@@ -29,7 +26,7 @@ impl ASTNode {
                 }
             }
         }
-        println!("{:?}", self.sym);
+        println!("{}", self.node_type);
         let mut flag = false;
         if idx == cnt - 1 && depth > 0 {
             vis[depth-1] = false;

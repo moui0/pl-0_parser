@@ -37,8 +37,6 @@ pub enum Symbol {
     Period(String),
     // null
     Nul,
-    // root,
-    Root,
 }
 
 impl Symbol {
